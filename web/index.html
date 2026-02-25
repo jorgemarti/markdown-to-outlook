@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown → Outlook</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljsThemeLink">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #242836;
+    --border: #2e3345;
+    --text: #e2e4ed;
+    --text-dim: #8b8fa3;
+    --accent: #4f8ff7;
+    --accent-dim: #3a6bc5;
+    --success: #34d399;
+    --orange: #f59e0b;
+    --radius: 10px;
+    --panel-h: 520px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 2rem; position: relative; }
+  header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.3rem; }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--text-dim); font-size: 0.88rem; }
+
+  /* ── Language switcher ── */
+  .lang-switch {
+    position: absolute; top: 0; right: 0;
+    display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  }
+  .lang-switch button {
+    font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
+    padding: 0.3rem 0.6rem; border: none; cursor: pointer;
+    background: var(--surface-2); color: var(--text-dim); transition: all 0.15s;
+    border-radius: 0;
+  }
+  .lang-switch button:hover { color: var(--text); }
+  .lang-switch button.active {
+    background: var(--accent); color: #fff;
+  }
+
+  /* ── Hint banner ── */
+  .hint-box {
+    margin-bottom: 1.5rem; padding: 0.7rem 1.2rem;
+    background: rgba(79,143,247,0.06); border: 1px solid rgba(79,143,247,0.15);
+    border-radius: var(--radius); font-size: 0.8rem; line-height: 1.7;
+    color: var(--text-dim);
+  }
+  .hint-box strong { color: var(--text); font-weight: 600; }
+  .hint-box .text-dim { color: var(--text-dim); font-size: 0.75rem; }
+  .hint-box kbd {
+    display: inline-block; padding: 1px 6px; margin: 0 2px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78em; color: var(--orange); white-space: nowrap;
+  }
+
+  /* ── Options bar ── */
+  .options-bar {
+    display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+    margin-bottom: 1.5rem; padding: 0.8rem 1.2rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .option-group { display: flex; align-items: center; gap: 0.5rem; }
+  .option-group label {
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-dim);
+  }
+  select, input[type="color"] {
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+    padding: 0.3rem 0.5rem; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); outline: none; cursor: pointer;
+  }
+  select:hover, input[type="color"]:hover { border-color: var(--accent-dim); }
+  input[type="color"] { width: 32px; height: 28px; padding: 2px; }
+
+  /* ── Panels ── */
+  .panels {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+  @media (max-width: 800px) { .panels { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); background: var(--surface-2);
+    flex-shrink: 0;
+  }
+  .panel-label {
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim);
+  }
+  .panel-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+    padding: 0.15rem 0.45rem; border-radius: 4px;
+    background: rgba(79,143,247,0.1); color: var(--accent);
+    border: 1px solid rgba(79,143,247,0.2);
+  }
+
+  textarea {
+    width: 100%; height: var(--panel-h); padding: 1rem; background: transparent;
+    border: none; color: var(--text); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; line-height: 1.7; resize: none; outline: none;
+    overflow-y: auto;
+  }
+  textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+  .preview-area {
+    padding: 1.2rem; height: var(--panel-h); overflow-y: auto;
+    background: #ffffff; color: #1a1a1a; font-size: 0.85rem; line-height: 1.5;
+  }
+  .preview-area table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  .preview-area th, .preview-area td { border: 1px solid #bfbfbf; padding: 6px 12px; text-align: left; font-size: 0.82rem; }
+  .preview-area th { background: #4472C4; color: #fff; font-weight: bold; }
+  .preview-area tr:nth-child(even) td { background: #f2f2f2; }
+  .preview-area code {
+    font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.82em;
+  }
+  .preview-area pre {
+    background: #1e1e2e; color: #cdd6f4; padding: 12px 16px; border-radius: 6px;
+    font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.8em;
+    overflow-x: auto; margin: 8px 0; border: 1px solid #313244; line-height: 1.6;
+  }
+  .preview-area pre code { background: none; border: none; padding: 0; font-size: inherit; color: inherit; border-radius: 0; }
+  .preview-area ul, .preview-area ol { padding-left: 24px; margin: 6px 0; }
+  .preview-area li { margin: 3px 0; }
+  .preview-area blockquote { border-left: 3px solid #4472C4; padding-left: 12px; margin: 8px 0; color: #555; }
+  .preview-area hr { border: none; border-top: 1px solid #ddd; margin: 12px 0; }
+
+  .empty-state {
+    display: flex; align-items: center; justify-content: center;
+    height: 200px; color: #999; font-size: 0.85rem;
+  }
+
+  /* ── Buttons ── */
+  .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  button {
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    padding: 0.55rem 1.1rem; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text); cursor: pointer;
+    transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  button:hover { border-color: var(--accent-dim); background: var(--surface); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-dim); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--success); color: #0f1117; font-weight: 600; font-size: 0.82rem;
+    padding: 0.6rem 1.4rem; border-radius: 8px; opacity: 0;
+    transition: all 0.3s ease; pointer-events: none; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 2.5rem; padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    text-align: center; font-size: 0.75rem; color: var(--text-dim);
+  }
+  .footer a {
+    color: var(--text-dim); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: color 0.15s;
+  }
+  .footer a:hover { color: var(--text); }
+  .footer svg { width: 16px; height: 16px; fill: currentColor; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Markdown → <span>Outlook</span></h1>
+    <p id="subtitle"></p>
+    <div class="lang-switch">
+      <button onclick="setLang('en')" id="langEn">EN</button>
+      <button onclick="setLang('es')" id="langEs">ES</button>
+    </div>
+  </header>
+
+  <div class="hint-box" id="hintBox"></div>
+
+  <div class="options-bar">
+    <div class="option-group">
+      <label id="lblTable"></label>
+      <select id="stylePreset"></select>
+    </div>
+    <div class="option-group">
+      <label id="lblHeaderColor"></label>
+      <input type="color" id="headerColor" value="#4472C4">
+    </div>
+    <div class="option-group">
+      <label id="lblFont"></label>
+      <select id="fontFamily">
+        <option value="Aptos, Calibri, sans-serif" selected>Aptos</option>
+        <option value="Calibri, sans-serif">Calibri</option>
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="Segoe UI, sans-serif">Segoe UI</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+      </select>
+    </div>
+    <div class="option-group">
+      <label id="lblSize"></label>
+      <select id="fontSize">
+        <option value="11px">11px</option>
+        <option value="12px" selected>12px</option>
+        <option value="13px">13px</option>
+        <option value="14px">14px</option>
+      </select>
+    </div>
+    <div class="option-group">
+      <label id="lblCodeTheme"></label>
+      <select id="codeTheme">
+        <option value="github-dark" selected>GitHub Dark</option>
+        <option value="atom-one-dark">One Dark</option>
+        <option value="nord">Nord</option>
+        <option value="dracula">Dracula</option>
+        <option value="monokai-sublime">Monokai</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-label">Markdown</span>
+        <span class="panel-badge">input</span>
+      </div>
+      <textarea id="mdInput"></textarea>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-label" id="lblPreview"></span>
+        <span class="panel-badge">preview</span>
+      </div>
+      <div class="preview-area" id="preview">
+        <div class="empty-state" id="emptyState"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="primary" onclick="copyForOutlook()" id="btnCopy"></button>
+    <button onclick="copyHtmlSource()" id="btnHtml"></button>
+    <button onclick="loadExample()" id="btnExample"></button>
+  </div>
+
+  <div class="footer">
+    <a href="https://github.com/jorgemarti/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      jorgemarti
+    </a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  i18n
+// ══════════════════════════════════════════
+const i18n = {
+  en: {
+    subtitle: 'Convert full Markdown to Outlook-compatible HTML with inline styles — tables, headers, lists, syntax-highlighted code…',
+    hint: `<strong>📌 How to paste in Outlook:</strong>
+      <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd> <span class="text-dim">(Win)</span> or <strong>Edit → Paste Special</strong> <span class="text-dim">(Mac)</span> → select <strong>"HTML Format"</strong> → OK.
+      This preserves fonts, colors, and syntax highlighting.`,
+    lblTable: 'Table', lblHeaderColor: 'Header color', lblFont: 'Font', lblSize: 'Size', lblCodeTheme: 'Code theme',
+    lblPreview: 'Preview',
+    tableClean: 'Clean', tableStriped: 'Striped rows', tableBordered: 'Thick borders', tableMinimal: 'Minimal',
+    btnCopy: '📋 Copy for Outlook', btnHtml: '⟨/⟩ Copy HTML', btnExample: 'Example',
+    emptyState: 'Preview will appear here…',
+    placeholder: `# My Document\n\nWrite **full markdown** here: headers, tables, lists, \`code\`...\n\n\`\`\`yaml\napiVersion: v1\nkind: Service\n\`\`\``,
+    toastCopied: '✓ Copied — use Paste Special → HTML Format in Outlook',
+    toastHtml: '✓ HTML copied to clipboard',
+    toastError: '⚠ Copy failed — select the preview manually',
+    exampleSeparator: 'And the infrastructure definition:',
+  },
+  es: {
+    subtitle: 'Convierte markdown completo a HTML con estilos inline — tablas, headers, listas, código con syntax highlighting…',
+    hint: `<strong>📌 Cómo pegar en Outlook:</strong>
+      <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd> <span class="text-dim">(Win)</span> o <strong>Edición → Pegado especial</strong> <span class="text-dim">(Mac)</span> → selecciona <strong>«Formato HTML»</strong> → Aceptar.
+      Esto preserva fuentes, colores y syntax highlighting.`,
+    lblTable: 'Tabla', lblHeaderColor: 'Header tabla', lblFont: 'Fuente', lblSize: 'Tamaño', lblCodeTheme: 'Tema código',
+    lblPreview: 'Vista previa',
+    tableClean: 'Limpio', tableStriped: 'Filas alternas', tableBordered: 'Bordes gruesos', tableMinimal: 'Minimal',
+    btnCopy: '📋 Copiar para Outlook', btnHtml: '⟨/⟩ Copiar HTML', btnExample: 'Ejemplo',
+    emptyState: 'La vista previa aparecerá aquí…',
+    placeholder: `# Mi Documento\n\nEscribe **markdown completo** aquí: headers, tablas, listas, \`código\`...\n\n\`\`\`yaml\napiVersion: v1\nkind: Service\n\`\`\``,
+    toastCopied: '✓ Copiado — usa Pegado especial → Formato HTML en Outlook',
+    toastHtml: '✓ HTML copiado al portapapeles',
+    toastError: '⚠ Error al copiar — selecciona el preview manualmente',
+    exampleSeparator: 'Y la definición de infraestructura:',
+  }
+};
+
+let lang = 'en';
+
+function detectLang() {
+  const nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  return nav.startsWith('es') ? 'es' : 'en';
+}
+
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  localStorage.setItem('md2outlook-lang', l);
+  applyLang();
+}
+
+function applyLang() {
+  const t = i18n[lang];
+  document.getElementById('subtitle').textContent = t.subtitle;
+  document.getElementById('hintBox').innerHTML = t.hint;
+  document.getElementById('lblTable').textContent = t.lblTable;
+  document.getElementById('lblHeaderColor').textContent = t.lblHeaderColor;
+  document.getElementById('lblFont').textContent = t.lblFont;
+  document.getElementById('lblSize').textContent = t.lblSize;
+  document.getElementById('lblCodeTheme').textContent = t.lblCodeTheme;
+  document.getElementById('lblPreview').textContent = t.lblPreview;
+
+  // Table preset options
+  const preset = document.getElementById('stylePreset');
+  preset.innerHTML = '';
+  [['clean', t.tableClean], ['striped', t.tableStriped], ['bordered', t.tableBordered], ['minimal', t.tableMinimal]].forEach(([v, label]) => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = label;
+    if (v === 'striped') opt.selected = true;
+    preset.appendChild(opt);
+  });
+
+  document.getElementById('btnCopy').textContent = t.btnCopy;
+  document.getElementById('btnHtml').textContent = t.btnHtml;
+  document.getElementById('btnExample').textContent = t.btnExample;
+  document.getElementById('emptyState').textContent = t.emptyState;
+  document.getElementById('mdInput').placeholder = t.placeholder;
+
+  // Language switcher active state
+  document.getElementById('langEn').classList.toggle('active', lang === 'en');
+  document.getElementById('langEs').classList.toggle('active', lang === 'es');
+}
+
+// ══════════════════════════════════════════
+//  Globals
+// ══════════════════════════════════════════
+const mdInput = document.getElementById('mdInput');
+const preview = document.getElementById('preview');
+
+// ── highlight.js theme CDN mapping ──
+const HLJS_THEMES = {
+  'github-dark':     { css: 'github-dark',     bg: '#0d1117', fg: '#c9d1d9', border: '#21262d' },
+  'atom-one-dark':   { css: 'atom-one-dark',   bg: '#282c34', fg: '#abb2bf', border: '#3e4451' },
+  'nord':            { css: 'nord',            bg: '#2e3440', fg: '#d8dee9', border: '#3b4252' },
+  'dracula':         { css: 'dracula',         bg: '#282a36', fg: '#f8f8f2', border: '#44475a' },
+  'monokai-sublime': { css: 'monokai-sublime', bg: '#23241f', fg: '#f8f8f2', border: '#3e3d32' },
+};
+
+function getTheme() {
+  const key = document.getElementById('codeTheme').value;
+  return HLJS_THEMES[key] || HLJS_THEMES['github-dark'];
+}
+
+function switchHljsTheme() {
+  const t = getTheme();
+  document.getElementById('hljsThemeLink').href =
+    `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${t.css}.min.css`;
+}
+
+function getConfig() {
+  const preset = document.getElementById('stylePreset').value;
+  const headerColor = document.getElementById('headerColor').value;
+  const font = document.getElementById('fontFamily').value;
+  const size = document.getElementById('fontSize').value;
+  const t = getTheme();
+
+  const r = parseInt(headerColor.slice(1,3), 16);
+  const g = parseInt(headerColor.slice(3,5), 16);
+  const b = parseInt(headerColor.slice(5,7), 16);
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  const headerText = lum < 0.5 ? '#ffffff' : '#1a1a1a';
+
+  return { preset, headerColor, headerText, font, size, t, borderColor: '#bfbfbf' };
+}
+
+// ══════════════════════════════════════════
+//  Inline formatting
+// ══════════════════════════════════════════
+function inlineFormat(str) {
+  const t = getTheme();
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/`(.+?)`/g, `<span style="font-family:Consolas,'Courier New',monospace;font-size:0.9em;">$1</span>`)
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/__(.+?)__/g, '<b>$1</b>')
+    .replace(/\*(.+?)\*/g, '<i>$1</i>')
+    .replace(/_([^_]+?)_/g, '<i>$1</i>')
+    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#4472C4;">$1</a>');
+}
+
+// ══════════════════════════════════════════
+//  Syntax highlighting → inline styles
+// ══════════════════════════════════════════
+function highlightForOutlook(code, lang, theme) {
+  let highlighted;
+  try {
+    if (lang && hljs.getLanguage(lang)) {
+      highlighted = hljs.highlight(code, { language: lang }).value;
+    } else {
+      highlighted = hljs.highlightAuto(code).value;
+    }
+  } catch {
+    highlighted = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  const colorMap = getHljsColorMap();
+  highlighted = highlighted.replace(/<span class="hljs-([^"]+)">/g, (_, cls) => {
+    const color = colorMap[cls] || theme.fg;
+    return `<span style="color:${color};">`;
+  });
+
+  highlighted = highlighted.split('\n').map(line => {
+    line = line.replace(/^ +/, m => '&nbsp;'.repeat(m.length));
+    line = line.replace(/  /g, '&nbsp;&nbsp;');
+    return line;
+  }).join('<br>');
+
+  return highlighted;
+}
+
+function getHljsColorMap() {
+  const maps = {
+    'github-dark': {
+      keyword: '#ff7b72', string: '#a5d6ff', number: '#79c0ff', literal: '#79c0ff',
+      built_in: '#ffa657', type: '#ffa657', title: '#d2a8ff', 'title.class_': '#f0883e',
+      'title.function_': '#d2a8ff', comment: '#8b949e', doctag: '#8b949e',
+      attr: '#79c0ff', name: '#7ee787', attribute: '#79c0ff', variable: '#ffa657',
+      symbol: '#79c0ff', meta: '#8b949e', selector: '#7ee787', tag: '#7ee787',
+      bullet: '#f2cc60', addition: '#aff5b4', deletion: '#ffdcd7',
+      property: '#79c0ff', regexp: '#a5d6ff', section: '#d2a8ff', params: '#c9d1d9',
+      subst: '#c9d1ff',
+    },
+    'atom-one-dark': {
+      keyword: '#c678dd', string: '#98c379', number: '#d19a66', literal: '#56b6c2',
+      built_in: '#e06c75', type: '#e5c07b', title: '#61afef', 'title.class_': '#e5c07b',
+      'title.function_': '#61afef', comment: '#5c6370', doctag: '#5c6370',
+      attr: '#d19a66', name: '#e06c75', attribute: '#d19a66', variable: '#e06c75',
+      symbol: '#56b6c2', meta: '#61afef', selector: '#e06c75', tag: '#e06c75',
+      bullet: '#d19a66', addition: '#98c379', deletion: '#e06c75',
+      property: '#61afef', regexp: '#98c379', section: '#e06c75', params: '#abb2bf',
+      subst: '#e06c75',
+    },
+    nord: {
+      keyword: '#81a1c1', string: '#a3be8c', number: '#b48ead', literal: '#81a1c1',
+      built_in: '#88c0d0', type: '#8fbcbb', title: '#88c0d0', 'title.class_': '#8fbcbb',
+      'title.function_': '#88c0d0', comment: '#616e88', doctag: '#616e88',
+      attr: '#8fbcbb', name: '#81a1c1', attribute: '#8fbcbb', variable: '#d08770',
+      symbol: '#ebcb8b', meta: '#5e81ac', selector: '#81a1c1', tag: '#81a1c1',
+      bullet: '#ebcb8b', addition: '#a3be8c', deletion: '#bf616a',
+      property: '#88c0d0', regexp: '#ebcb8b', section: '#88c0d0', params: '#d8dee9',
+      subst: '#d08770',
+    },
+    dracula: {
+      keyword: '#ff79c6', string: '#f1fa8c', number: '#bd93f9', literal: '#bd93f9',
+      built_in: '#50fa7b', type: '#8be9fd', title: '#50fa7b', 'title.class_': '#8be9fd',
+      'title.function_': '#50fa7b', comment: '#6272a4', doctag: '#6272a4',
+      attr: '#50fa7b', name: '#ff79c6', attribute: '#50fa7b', variable: '#f8f8f2',
+      symbol: '#f1fa8c', meta: '#ff79c6', selector: '#8be9fd', tag: '#ff79c6',
+      bullet: '#8be9fd', addition: '#50fa7b', deletion: '#ff5555',
+      property: '#66d9ef', regexp: '#f1fa8c', section: '#bd93f9', params: '#f8f8f2',
+      subst: '#f8f8f2',
+    },
+    'monokai-sublime': {
+      keyword: '#f92672', string: '#e6db74', number: '#ae81ff', literal: '#ae81ff',
+      built_in: '#66d9ef', type: '#a6e22e', title: '#a6e22e', 'title.class_': '#a6e22e',
+      'title.function_': '#a6e22e', comment: '#75715e', doctag: '#75715e',
+      attr: '#a6e22e', name: '#f92672', attribute: '#a6e22e', variable: '#fd971f',
+      symbol: '#ae81ff', meta: '#f92672', selector: '#a6e22e', tag: '#f92672',
+      bullet: '#ae81ff', addition: '#a6e22e', deletion: '#f92672',
+      property: '#66d9ef', regexp: '#e6db74', section: '#a6e22e', params: '#f8f8f2',
+      subst: '#fd971f',
+    },
+  };
+  return maps[document.getElementById('codeTheme').value] || maps['github-dark'];
+}
+
+// ══════════════════════════════════════════
+//  Markdown → HTML
+// ══════════════════════════════════════════
+function markdownToOutlookHTML(md, forClipboard) {
+  const c = getConfig();
+  const lines = md.split('\n');
+  let html = '';
+  let i = 0;
+  const baseStyle = `font-family:${c.font};font-size:${c.size};color:#1a1a1a;`;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // ── Code block ──
+    const codeMatch = line.trimStart().match(/^```(\w*)/);
+    if (codeMatch) {
+      const codeLang = codeMatch[1] || '';
+      const codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].trimStart().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++;
+      const rawCode = codeLines.join('\n');
+
+      if (forClipboard) {
+        const highlighted = highlightForOutlook(rawCode, codeLang, c.t);
+        html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">` +
+                `<tr><td style="border:1px solid ${c.t.border};background-color:${c.t.bg};padding:12px 16px;` +
+                `font-family:Consolas,'Courier New',monospace;font-size:${c.size};color:${c.t.fg};line-height:1.6;">` +
+                `${highlighted}</td></tr></table>\n`;
+      } else {
+        const escaped = rawCode.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const langClass = codeLang ? ` class="language-${codeLang}"` : '';
+        html += `<pre><code${langClass}>${escaped}</code></pre>\n`;
+      }
+      continue;
+    }
+
+    // ── Table ──
+    if (line.includes('|') && line.trim().startsWith('|')) {
+      const tableLines = [];
+      while (i < lines.length && lines[i].includes('|') && lines[i].trim().startsWith('|')) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      html += parseTable(tableLines, c);
+      continue;
+    }
+
+    // ── Headers ──
+    const hMatch = line.match(/^(#{1,6})\s+(.+)/);
+    if (hMatch) {
+      const level = hMatch[1].length;
+      const text = inlineFormat(hMatch[2]);
+      const sizes = { 1: '22px', 2: '18px', 3: '15px', 4: '13px', 5: '12px', 6: '11px' };
+      const marginTop = level <= 2 ? '20px' : '14px';
+      html += `<p style="${baseStyle}font-size:${sizes[level]};font-weight:bold;margin:${marginTop} 0 8px 0;"><b>${text}</b></p>\n`;
+      if (level <= 2) {
+        html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 8px 0;"><tr><td style="border-bottom:1px solid #dddddd;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>\n`;
+      }
+      i++; continue;
+    }
+
+    // ── Horizontal rule ──
+    if (/^(\-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+      html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:14px 0;"><tr><td style="border-bottom:1px solid #dddddd;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>\n`;
+      i++; continue;
+    }
+
+    // ── Blockquote ──
+    if (line.trimStart().startsWith('>')) {
+      const bqLines = [];
+      while (i < lines.length && lines[i].trimStart().startsWith('>')) {
+        bqLines.push(lines[i].replace(/^>\s?/, ''));
+        i++;
+      }
+      const bqText = bqLines.map(l => inlineFormat(l)).join('<br>');
+      html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:10px 0;"><tr>` +
+              `<td width="3" style="background-color:${c.headerColor};"></td>` +
+              `<td style="${baseStyle}padding:8px 0 8px 14px;color:#555555;">${bqText}</td>` +
+              `</tr></table>\n`;
+      continue;
+    }
+
+    // ── Unordered list ──
+    if (/^\s*[-*+]\s+/.test(line)) {
+      let listHtml = `<ul style="${baseStyle}margin:8px 0;padding-left:28px;">`;
+      while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
+        const match = lines[i].match(/^\s*[-*+]\s+(.+)/);
+        listHtml += `<li style="${baseStyle}margin:4px 0;line-height:1.5;">${inlineFormat(match[1])}</li>`;
+        i++;
+      }
+      listHtml += `</ul>\n`;
+      html += listHtml;
+      continue;
+    }
+
+    // ── Ordered list ──
+    if (/^\s*\d+\.\s+/.test(line)) {
+      let listHtml = `<ol style="${baseStyle}margin:8px 0;padding-left:28px;">`;
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+        const match = lines[i].match(/^\s*\d+\.\s+(.+)/);
+        listHtml += `<li style="${baseStyle}margin:4px 0;line-height:1.5;">${inlineFormat(match[1])}</li>`;
+        i++;
+      }
+      listHtml += `</ol>\n`;
+      html += listHtml;
+      continue;
+    }
+
+    // ── Empty line ──
+    if (!line.trim()) { i++; continue; }
+
+    // ── Paragraph ──
+    const paraLines = [];
+    while (i < lines.length && lines[i].trim() && !lines[i].match(/^#{1,6}\s/) &&
+           !lines[i].trimStart().startsWith('```') && !lines[i].trimStart().startsWith('>') &&
+           !/^\s*[-*+]\s+/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i]) &&
+           !(lines[i].includes('|') && lines[i].trim().startsWith('|')) &&
+           !/^(\-{3,}|\*{3,}|_{3,})$/.test(lines[i].trim())) {
+      paraLines.push(lines[i]);
+      i++;
+    }
+    if (paraLines.length > 0) {
+      html += `<p style="${baseStyle}margin:8px 0;line-height:1.6;">${paraLines.map(l => inlineFormat(l)).join('<br>')}</p>\n`;
+    }
+  }
+
+  return html;
+}
+
+// ══════════════════════════════════════════
+//  Table parser
+// ══════════════════════════════════════════
+function parseTable(tableLines, c) {
+  if (tableLines.length < 2) return '';
+
+  const parseRow = line =>
+    line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(cl => cl.trim());
+
+  const headers = parseRow(tableLines[0]);
+  let sepIdx = -1;
+  const alignments = [];
+  for (let j = 1; j < tableLines.length; j++) {
+    if (/^[\s|:\-]+$/.test(tableLines[j])) {
+      sepIdx = j;
+      parseRow(tableLines[j]).forEach(cell => {
+        const left = cell.startsWith(':'), right = cell.endsWith(':');
+        alignments.push(left && right ? 'center' : right ? 'right' : 'left');
+      });
+      break;
+    }
+  }
+
+  const dataStart = sepIdx >= 0 ? sepIdx + 1 : 1;
+  const rows = [];
+  for (let j = dataStart; j < tableLines.length; j++) {
+    if (!/^[\s|:\-]+$/.test(tableLines[j])) rows.push(parseRow(tableLines[j]));
+  }
+
+  const pad = '8px 14px';
+  const bdr = c.preset === 'bordered' ? `2px solid ${c.borderColor}` : `1px solid ${c.borderColor}`;
+  let thStyle, tdStyle, tdAltStyle;
+
+  if (c.preset === 'minimal') {
+    thStyle = `border-bottom:2px solid ${c.headerColor};padding:${pad};color:${c.headerColor};font-weight:bold;font-family:${c.font};font-size:${c.size};`;
+    tdStyle = `border-bottom:1px solid #e0e0e0;padding:${pad};color:#1a1a1a;font-family:${c.font};font-size:${c.size};`;
+    tdAltStyle = tdStyle;
+  } else {
+    thStyle = `border:${bdr};padding:${pad};background-color:${c.headerColor};color:${c.headerText};font-weight:bold;font-family:${c.font};font-size:${c.size};`;
+    tdStyle = `border:${bdr};padding:${pad};color:#1a1a1a;font-family:${c.font};font-size:${c.size};`;
+    tdAltStyle = c.preset === 'striped'
+      ? `border:${bdr};padding:${pad};color:#1a1a1a;background-color:#f2f2f2;font-family:${c.font};font-size:${c.size};`
+      : tdStyle;
+  }
+
+  let html = `<table style="border-collapse:collapse;width:100%;font-family:${c.font};font-size:${c.size};margin:10px 0;">\n<thead><tr>`;
+  headers.forEach((h, idx) => {
+    const align = alignments[idx] || 'left';
+    html += `<th style="${thStyle}text-align:${align};">${inlineFormat(h)}</th>`;
+  });
+  html += `</tr></thead>\n<tbody>`;
+
+  rows.forEach((row, ri) => {
+    html += `<tr>`;
+    row.forEach((cell, ci) => {
+      const align = alignments[ci] || 'left';
+      const style = ri % 2 === 1 ? tdAltStyle : tdStyle;
+      html += `<td style="${style}text-align:${align};">${inlineFormat(cell)}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>\n`;
+  return html;
+}
+
+// ══════════════════════════════════════════
+//  Preview
+// ══════════════════════════════════════════
+function updatePreview() {
+  const md = mdInput.value;
+  if (!md.trim()) {
+    preview.innerHTML = `<div class="empty-state">${i18n[lang].emptyState}</div>`;
+    return;
+  }
+  preview.innerHTML = markdownToOutlookHTML(md, false);
+  preview.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+}
+
+// ══════════════════════════════════════════
+//  Copy
+// ══════════════════════════════════════════
+async function copyForOutlook() {
+  const md = mdInput.value;
+  if (!md.trim()) return;
+  const html = markdownToOutlookHTML(md, true);
+  const t = i18n[lang];
+
+  try {
+    const blob = new Blob([html], { type: 'text/html' });
+    await navigator.clipboard.write([new ClipboardItem({
+      'text/html': blob,
+      'text/plain': new Blob([md], { type: 'text/plain' })
+    })]);
+    showToast(t.toastCopied);
+  } catch {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    tmp.style.position = 'fixed';
+    tmp.style.left = '-9999px';
+    document.body.appendChild(tmp);
+    const range = document.createRange();
+    range.selectNodeContents(tmp);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+    document.body.removeChild(tmp);
+    showToast(t.toastCopied);
+  }
+}
+
+async function copyHtmlSource() {
+  const md = mdInput.value;
+  if (!md.trim()) return;
+  const html = markdownToOutlookHTML(md, true);
+  const t = i18n[lang];
+  try {
+    await navigator.clipboard.writeText(html);
+    showToast(t.toastHtml);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = html;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(t.toastHtml);
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════
+//  Example
+// ══════════════════════════════════════════
+function loadExample() {
+  const sep = i18n[lang].exampleSeparator;
+  mdInput.value = `# Project Status Report — Q1 2026
+
+## Summary
+
+The migration to the new platform is **on track**. All critical milestones for Phase 1 have been completed. Phase 2 begins next week with the rollout of the \`authentication\` module.
+
+> **Important:** The staging environment will be unavailable on March 3rd due to scheduled maintenance. Plan your testing accordingly.
+
+## Milestone Tracker
+
+| Milestone | Status | Deadline | Owner |
+|:----------|:------:|:--------:|------:|
+| Database migration | ✅ Done | Feb 10 | Backend |
+| API v2 endpoints | ✅ Done | Feb 18 | Backend |
+| Auth module | 🔄 In Progress | Mar 05 | Security |
+| UI redesign | ⏳ Pending | Mar 15 | Frontend |
+| Load testing | ❌ Blocked | Mar 20 | QA |
+
+## Next Steps
+
+1. Complete \`OAuth 2.0\` integration with the identity provider
+2. Run **performance benchmarks** on the new API endpoints
+3. Update deployment scripts for the \`production\` cluster
+
+### Known Issues
+
+- Session timeout set to \`15min\` — needs to be configurable
+- Missing rate limiting on the \`/api/v2/search\` endpoint
+- Docker images not pinned to specific versions in **Compose file**
+
+---
+
+\`\`\`python
+import requests
+from datetime import datetime
+
+def check_service_health(endpoints: list[str]) -> dict:
+    """Check health status of all service endpoints."""
+    results = {}
+    for url in endpoints:
+        try:
+            resp = requests.get(f"{url}/health", timeout=5)
+            results[url] = {
+                "status": "healthy" if resp.status_code == 200 else "degraded",
+                "latency_ms": resp.elapsed.total_seconds() * 1000,
+                "checked_at": datetime.utcnow().isoformat()
+            }
+        except requests.ConnectionError:
+            results[url] = {"status": "unreachable", "checked_at": datetime.utcnow().isoformat()}
+    return results
+\`\`\`
+
+${sep}
+
+\`\`\`yaml
+# Docker Compose service definition
+services:
+  api:
+    image: registry.example.com/api:v2.1.0
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - LOG_LEVEL=info
+    depends_on:
+      - postgres
+      - redis
+\`\`\``;
+  updatePreview();
+}
+
+// ══════════════════════════════════════════
+//  Init
+// ══════════════════════════════════════════
+(function init() {
+  // Detect or restore language
+  const saved = localStorage.getItem('md2outlook-lang');
+  lang = saved || detectLang();
+  applyLang();
+
+  // Event listeners
+  mdInput.addEventListener('input', updatePreview);
+  ['stylePreset', 'headerColor', 'fontFamily', 'fontSize'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener(el.type === 'color' ? 'input' : 'change', updatePreview);
+  });
+  document.getElementById('codeTheme').addEventListener('change', () => {
+    switchHljsTheme();
+    updatePreview();
+  });
+})();
+</script>
+</body>
+</html>
