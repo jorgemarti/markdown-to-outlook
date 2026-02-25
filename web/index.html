@@ -411,17 +411,32 @@ function getConfig() {
 // ══════════════════════════════════════════
 function inlineFormat(str) {
   const t = getTheme();
-  return str
+  // First: extract inline code into placeholders so underscores inside are protected
+  const codeSlots = [];
+  str = str.replace(/`(.+?)`/g, (_, code) => {
+    const idx = codeSlots.length;
+    codeSlots.push(code);
+    return `\x00CODE${idx}\x00`;
+  });
+
+  str = str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/`(.+?)`/g, `<span style="font-family:Consolas,'Courier New',monospace;font-size:0.9em;">$1</span>`)
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/__(.+?)__/g, '<b>$1</b>')
     .replace(/\*(.+?)\*/g, '<i>$1</i>')
     .replace(/_([^_]+?)_/g, '<i>$1</i>')
     .replace(/~~(.+?)~~/g, '<s>$1</s>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#4472C4;">$1</a>');
+
+  // Restore inline code spans
+  str = str.replace(/\x00CODE(\d+)\x00/g, (_, idx) => {
+    const code = codeSlots[parseInt(idx)].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<span style="font-family:Consolas,'Courier New',monospace;font-size:0.9em;">${code}</span>`;
+  });
+
+  return str;
 }
 
 // ══════════════════════════════════════════
