@@ -6,8 +6,8 @@
 <title>Markdown → Outlook</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='7' width='28' height='18' rx='3' fill='%234f8ff7'/><path d='M2 10l14 9 14-9' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linejoin='round'/><path d='M22 4l4 4-4 4' fill='none' stroke='%234f8ff7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/><line x1='14' y1='8' x2='26' y2='8' stroke='%234f8ff7' stroke-width='2.5' stroke-linecap='round'/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljsThemeLink">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljsThemeLink">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -376,7 +376,7 @@ const HLJS_THEMES = {
   'github-dark':     { css: 'github-dark',     bg: '#0d1117', fg: '#c9d1d9', border: '#21262d' },
   'atom-one-dark':   { css: 'atom-one-dark',   bg: '#282c34', fg: '#abb2bf', border: '#3e4451' },
   'nord':            { css: 'nord',            bg: '#2e3440', fg: '#d8dee9', border: '#3b4252' },
-  'dracula':         { css: 'dracula',         bg: '#282a36', fg: '#f8f8f2', border: '#44475a' },
+  'dracula':         { css: 'base16/dracula',  bg: '#282a36', fg: '#f8f8f2', border: '#44475a' },
   'monokai-sublime': { css: 'monokai-sublime', bg: '#23241f', fg: '#f8f8f2', border: '#3e3d32' },
 };
 
@@ -388,7 +388,7 @@ function getTheme() {
 function switchHljsTheme() {
   const t = getTheme();
   document.getElementById('hljsThemeLink').href =
-    `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${t.css}.min.css`;
+    `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/${t.css}.min.css`;
 }
 
 function getConfig() {
