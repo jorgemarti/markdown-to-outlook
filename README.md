@@ -12,6 +12,7 @@ A single-file, zero-dependency static HTML tool that converts Markdown into Outl
 - **Customizable tables** — four table styles (clean, striped, bordered, minimal) with configurable header colors
 - **Font & size control** — pick your body font (Aptos, Calibri, Arial…) and size. Code blocks always render in Consolas
 - **Outlook-tested** — all HTML uses inline styles and table-based layouts that survive Outlook's Word rendering engine. Code blocks, blockquotes, and horizontal rules are all built with `<table>` elements because that's what Outlook respects
+- **Works in Gmail too** — inline styles mean it pastes beautifully into Gmail and other email clients as well
 - **Two copy modes** — "Copy for Outlook" (rich text for pasting) and "Copy HTML" (raw source)
 - **Static & portable** — one HTML file, no build step, no server. Open it in your browser and go
 - **Bilingual (EN/ES)** — auto-detects your browser language, with a one-click switcher. Defaults to English
