@@ -614,27 +614,15 @@ function markdownToOutlookHTML(md, forClipboard) {
 
     // ── Unordered list ──
     if (/^\s*[-*+]\s+/.test(line)) {
-      let listHtml = `<ul style="${baseStyle}margin:8px 0;padding-left:28px;">`;
-      while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
-        const match = lines[i].match(/^\s*[-*+]\s+(.+)/);
-        listHtml += `<li style="${baseStyle}margin:4px 0;line-height:1.5;">${inlineFormat(match[1])}</li>`;
-        i++;
-      }
-      listHtml += `</ul>\n`;
-      html += listHtml;
+      html += parseList(lines, i, 'ul', baseStyle);
+      while (i < lines.length && (/^\s*[-*+]\s+/.test(lines[i]) || /^\s*\d+\.\s+/.test(lines[i]))) i++;
       continue;
     }
 
     // ── Ordered list ──
     if (/^\s*\d+\.\s+/.test(line)) {
-      let listHtml = `<ol style="${baseStyle}margin:8px 0;padding-left:28px;">`;
-      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
-        const match = lines[i].match(/^\s*\d+\.\s+(.+)/);
-        listHtml += `<li style="${baseStyle}margin:4px 0;line-height:1.5;">${inlineFormat(match[1])}</li>`;
-        i++;
-      }
-      listHtml += `</ol>\n`;
-      html += listHtml;
+      html += parseList(lines, i, 'ol', baseStyle);
+      while (i < lines.length && (/^\s*[-*+]\s+/.test(lines[i]) || /^\s*\d+\.\s+/.test(lines[i]))) i++;
       continue;
     }
 
@@ -657,6 +645,67 @@ function markdownToOutlookHTML(md, forClipboard) {
   }
 
   return html;
+}
+
+// ══════════════════════════════════════════
+//  List parser (supports nesting)
+// ══════════════════════════════════════════
+function parseList(lines, startIdx, defaultTag, baseStyle) {
+  // Collect all consecutive list lines (both ul and ol)
+  const items = [];
+  let idx = startIdx;
+  while (idx < lines.length) {
+    const ulMatch = lines[idx].match(/^(\s*)([-*+])\s+(.+)/);
+    const olMatch = lines[idx].match(/^(\s*)(\d+)\.\s+(.+)/);
+    if (ulMatch) {
+      items.push({ indent: ulMatch[1].length, type: 'ul', text: ulMatch[3] });
+      idx++;
+    } else if (olMatch) {
+      items.push({ indent: olMatch[1].length, type: 'ol', text: olMatch[3] });
+      idx++;
+    } else {
+      break;
+    }
+  }
+
+  if (items.length === 0) return '';
+
+  // Determine indent levels
+  const indents = [...new Set(items.map(it => it.indent))].sort((a, b) => a - b);
+  const levelOf = (indent) => indents.indexOf(indent);
+
+  let html = '';
+  const stack = []; // stack of { tag, level }
+
+  for (const item of items) {
+    const level = levelOf(item.indent);
+    const tag = item.type;
+
+    // Close lists deeper than current level
+    while (stack.length > 0 && stack[stack.length - 1].level >= level) {
+      const popped = stack.pop();
+      html += `</${popped.tag}>`;
+    }
+
+    // Open new list if needed (either first item, or deeper level, or tag change at same level)
+    const needOpen = stack.length === 0 || level > (stack.length > 0 ? stack[stack.length - 1].level : -1);
+    if (needOpen) {
+      const isTop = stack.length === 0;
+      const margin = isTop ? 'margin:8px 0;' : 'margin:2px 0;';
+      html += `<${tag} style="${baseStyle}${margin}padding-left:28px;">`;
+      stack.push({ tag, level });
+    }
+
+    html += `<li style="${baseStyle}margin:4px 0;line-height:1.5;">${inlineFormat(item.text)}</li>`;
+  }
+
+  // Close remaining open lists
+  while (stack.length > 0) {
+    const popped = stack.pop();
+    html += `</${popped.tag}>`;
+  }
+
+  return html + '\n';
 }
 
 // ══════════════════════════════════════════
