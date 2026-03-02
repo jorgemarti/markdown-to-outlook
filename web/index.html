@@ -227,10 +227,11 @@
     <div class="option-group">
       <label id="lblSize"></label>
       <select id="fontSize">
-        <option value="11px">11px</option>
-        <option value="12px" selected>12px</option>
-        <option value="13px">13px</option>
-        <option value="14px">14px</option>
+        <option value="9pt">9pt</option>
+        <option value="10pt">10pt</option>
+        <option value="11pt" selected>11pt</option>
+        <option value="12pt">12pt</option>
+        <option value="14pt">14pt</option>
       </select>
     </div>
     <div class="option-group">
@@ -582,7 +583,7 @@ function markdownToOutlookHTML(md, forClipboard) {
     if (hMatch) {
       const level = hMatch[1].length;
       const text = inlineFormat(hMatch[2]);
-      const sizes = { 1: '22px', 2: '18px', 3: '15px', 4: '13px', 5: '12px', 6: '11px' };
+      const sizes = { 1: '16pt', 2: '14pt', 3: '12pt', 4: '11pt', 5: '10pt', 6: '9pt' };
       const marginTop = level <= 2 ? '20px' : '14px';
       html += `<p style="${baseStyle}font-size:${sizes[level]};font-weight:bold;margin:${marginTop} 0 8px 0;"><b>${text}</b></p>\n`;
       if (level <= 2) {
@@ -790,34 +791,23 @@ function updatePreview() {
 // ══════════════════════════════════════════
 //  Copy
 // ══════════════════════════════════════════
-async function copyForOutlook() {
+function copyForOutlook() {
   const md = mdInput.value;
   if (!md.trim()) return;
   const html = markdownToOutlookHTML(md, true);
   const t = i18n[lang];
 
-  try {
-    const blob = new Blob([html], { type: 'text/html' });
-    await navigator.clipboard.write([new ClipboardItem({
-      'text/html': blob,
-      'text/plain': new Blob([md], { type: 'text/plain' })
-    })]);
-    showToast(t.toastCopied);
-  } catch {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    tmp.style.position = 'fixed';
-    tmp.style.left = '-9999px';
-    document.body.appendChild(tmp);
-    const range = document.createRange();
-    range.selectNodeContents(tmp);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    document.execCommand('copy');
-    document.body.removeChild(tmp);
-    showToast(t.toastCopied);
-  }
+  // Use a copy event handler with clipboardData.setData to write raw HTML
+  // without browser sanitization (which resolves relative URLs).
+  const handler = (e) => {
+    e.clipboardData.setData('text/html', html);
+    e.clipboardData.setData('text/plain', md);
+    e.preventDefault();
+  };
+  document.addEventListener('copy', handler);
+  const ok = document.execCommand('copy');
+  document.removeEventListener('copy', handler);
+  showToast(ok ? t.toastCopied : t.toastError);
 }
 
 async function copyHtmlSource() {
