@@ -7,6 +7,7 @@ A single-file, zero-dependency static HTML tool that converts Markdown into Outl
 ## ✨ Features
 
 - **Full Markdown support** — headers, tables, lists (ordered & unordered), blockquotes, bold, italic, strikethrough, links, inline code, code blocks, and horizontal rules
+- **Callouts / admonitions** — supports `> [!note]`, `> [!warning]`, `> [!caution]`, `> [!tip]`, and more (12 types) with color-coded styling and icons, compatible with GitHub and Obsidian syntax
 - **Syntax highlighting** — powered by [highlight.js](https://highlightjs.org/). Specify the language in your fenced code blocks (` ```python `, ` ```yaml `, etc.) and get real, colorized syntax in your emails
 - **5 code themes** — GitHub Dark, One Dark, Nord, Dracula, and Monokai. Because your YAML deserves to look good
 - **Customizable tables** — four table styles (clean, striped, bordered, minimal) with configurable header colors
