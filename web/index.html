@@ -598,18 +598,50 @@ function markdownToOutlookHTML(md, forClipboard) {
       i++; continue;
     }
 
-    // ── Blockquote ──
+    // ── Blockquote / Callout ──
     if (line.trimStart().startsWith('>')) {
       const bqLines = [];
       while (i < lines.length && lines[i].trimStart().startsWith('>')) {
         bqLines.push(lines[i].replace(/^>\s?/, ''));
         i++;
       }
-      const bqText = bqLines.map(l => inlineFormat(l)).join('<br>');
-      html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:10px 0;"><tr>` +
-              `<td width="3" style="background-color:${c.headerColor};"></td>` +
-              `<td style="${baseStyle}padding:8px 0 8px 14px;color:#555555;">${bqText}</td>` +
-              `</tr></table>\n`;
+
+      // Check for callout syntax: [!type] optional title
+      const calloutMatch = bqLines[0] && bqLines[0].match(/^\[!(note|tip|important|warning|caution|info|success|danger|bug|example|quote|abstract)\]\s*(.*)?$/i);
+      if (calloutMatch) {
+        const calloutType = calloutMatch[1].toLowerCase();
+        const customTitle = calloutMatch[2] || '';
+        const calloutConfig = {
+          note:      { color: '#4472C4', bg: '#E8F0FE', icon: '\u2139\uFE0F',  label: 'Note' },
+          info:      { color: '#4472C4', bg: '#E8F0FE', icon: '\u2139\uFE0F',  label: 'Info' },
+          tip:       { color: '#00A36C', bg: '#E6F9F0', icon: '\uD83D\uDCA1', label: 'Tip' },
+          success:   { color: '#00A36C', bg: '#E6F9F0', icon: '\u2705',       label: 'Success' },
+          important: { color: '#8B5CF6', bg: '#F3EEFF', icon: '\u2757',       label: 'Important' },
+          warning:   { color: '#E8A317', bg: '#FFF8E1', icon: '\u26A0\uFE0F',  label: 'Warning' },
+          caution:   { color: '#D32F2F', bg: '#FEECEC', icon: '\uD83D\uDED1', label: 'Caution' },
+          danger:    { color: '#D32F2F', bg: '#FEECEC', icon: '\uD83D\uDED1', label: 'Danger' },
+          bug:       { color: '#D32F2F', bg: '#FEECEC', icon: '\uD83D\uDC1B', label: 'Bug' },
+          example:   { color: '#7C3AED', bg: '#F3EEFF', icon: '\uD83D\uDCCB', label: 'Example' },
+          quote:     { color: '#6B7280', bg: '#F3F4F6', icon: '\u275D',       label: 'Quote' },
+          abstract:  { color: '#3B82F6', bg: '#EFF6FF', icon: '\uD83D\uDCC4', label: 'Abstract' },
+        };
+        const cfg = calloutConfig[calloutType];
+        const title = customTitle || cfg.label;
+        const bodyLines = bqLines.slice(1);
+        const bodyText = bodyLines.length > 0 ? bodyLines.map(l => inlineFormat(l)).join('<br>') : '';
+
+        html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:10px 0;border-collapse:collapse;"><tr>` +
+                `<td style="background-color:${cfg.bg};border-left:4px solid ${cfg.color};padding:12px 16px;border-radius:4px;">` +
+                `<span style="${baseStyle}font-weight:bold;color:${cfg.color};">${cfg.icon} ${title}</span>` +
+                (bodyText ? `<br><span style="${baseStyle}color:#333333;line-height:1.6;">${bodyText}</span>` : '') +
+                `</td></tr></table>\n`;
+      } else {
+        const bqText = bqLines.map(l => inlineFormat(l)).join('<br>');
+        html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:10px 0;"><tr>` +
+                `<td width="3" style="background-color:${c.headerColor};"></td>` +
+                `<td style="${baseStyle}padding:8px 0 8px 14px;color:#555555;">${bqText}</td>` +
+                `</tr></table>\n`;
+      }
       continue;
     }
 
