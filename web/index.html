@@ -715,12 +715,18 @@ function parseList(lines, startIdx, defaultTag, baseStyle) {
     const tag = item.type;
 
     // Close lists deeper than current level
-    while (stack.length > 0 && stack[stack.length - 1].level >= level) {
+    while (stack.length > 0 && stack[stack.length - 1].level > level) {
       const popped = stack.pop();
       html += `</${popped.tag}>`;
     }
 
-    // Open new list if needed (either first item, or deeper level, or tag change at same level)
+    // If same level but different list type (ul↔ol), close and reopen
+    if (stack.length > 0 && stack[stack.length - 1].level === level && stack[stack.length - 1].tag !== tag) {
+      const popped = stack.pop();
+      html += `</${popped.tag}>`;
+    }
+
+    // Open new list if needed (first item, deeper level, or after tag change)
     const needOpen = stack.length === 0 || level > (stack.length > 0 ? stack[stack.length - 1].level : -1);
     if (needOpen) {
       const isTop = stack.length === 0;
