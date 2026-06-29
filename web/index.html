@@ -461,10 +461,16 @@ function highlightForOutlook(code, lang, theme) {
   }
 
   const colorMap = getHljsColorMap();
-  highlighted = highlighted.replace(/<span class="hljs-([^"]+)">/g, (_, cls) => {
-    const color = colorMap[cls] || theme.fg;
-    return `<span style="color:${color};">`;
-  });
+  // Emit BOTH <font color> (Outlook's Word engine ignores style="color" on
+  // spans but honors <font color>) and inline style (everything else).
+  // Every hljs token is a <span>…</span>, so converting each closing tag to
+  // </span></font> keeps the nesting balanced even for nested tokens.
+  highlighted = highlighted
+    .replace(/<span class="hljs-([^"]+)">/g, (_, cls) => {
+      const color = colorMap[cls] || colorMap[cls.split(' ')[0]] || theme.fg;
+      return `<font color="${color}"><span style="color:${color};">`;
+    })
+    .replace(/<\/span>/g, '</span></font>');
 
   highlighted = highlighted.replace(/\t/g, '    ');
   highlighted = highlighted.split('\n').map(line => {
