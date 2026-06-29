@@ -239,6 +239,7 @@
       <label id="lblCodeTheme"></label>
       <select id="codeTheme">
         <option value="github-dark" selected>GitHub Dark</option>
+        <option value="github-light">Light (email-safe)</option>
         <option value="atom-one-dark">One Dark</option>
         <option value="nord">Nord</option>
         <option value="dracula">Dracula</option>
@@ -375,6 +376,7 @@ const preview = document.getElementById('preview');
 
 // ── highlight.js theme CDN mapping ──
 const HLJS_THEMES = {
+  'github-light':    { css: 'github',          bg: '#f6f8fa', fg: '#1f2328', border: '#d0d7de' },
   'github-dark':     { css: 'github-dark',     bg: '#0d1117', fg: '#c9d1d9', border: '#21262d' },
   'atom-one-dark':   { css: 'atom-one-dark',   bg: '#282c34', fg: '#abb2bf', border: '#3e4451' },
   'nord':            { css: 'nord',            bg: '#2e3440', fg: '#d8dee9', border: '#3b4252' },
@@ -423,6 +425,7 @@ function inlineFormat(str) {
   });
 
   str = str
+    .replace(/\s*—\s*/g, ', ')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -463,6 +466,7 @@ function highlightForOutlook(code, lang, theme) {
     return `<span style="color:${color};">`;
   });
 
+  highlighted = highlighted.replace(/\t/g, '    ');
   highlighted = highlighted.split('\n').map(line => {
     line = line.replace(/^ +/, m => '&nbsp;'.repeat(m.length));
     line = line.replace(/  /g, '&nbsp;&nbsp;');
@@ -474,6 +478,16 @@ function highlightForOutlook(code, lang, theme) {
 
 function getHljsColorMap() {
   const maps = {
+    'github-light': {
+      keyword: '#cf222e', string: '#0a3069', number: '#0550ae', literal: '#0550ae',
+      built_in: '#0550ae', type: '#953800', title: '#8250df', 'title.class_': '#953800',
+      'title.function_': '#8250df', comment: '#6e7781', doctag: '#cf222e',
+      attr: '#0550ae', name: '#116329', attribute: '#0550ae', variable: '#953800',
+      symbol: '#0550ae', meta: '#0550ae', selector: '#116329', tag: '#116329',
+      bullet: '#0550ae', addition: '#116329', deletion: '#82071e',
+      property: '#0550ae', regexp: '#0a3069', section: '#0550ae', params: '#1f2328',
+      subst: '#1f2328',
+    },
     'github-dark': {
       keyword: '#ff7b72', string: '#a5d6ff', number: '#79c0ff', literal: '#79c0ff',
       built_in: '#ffa657', type: '#ffa657', title: '#d2a8ff', 'title.class_': '#f0883e',
@@ -557,7 +571,7 @@ function markdownToOutlookHTML(md, forClipboard) {
       if (forClipboard) {
         const highlighted = highlightForOutlook(rawCode, codeLang, c.t);
         html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">` +
-                `<tr><td style="border:1px solid ${c.t.border};background-color:${c.t.bg};padding:12px 16px;` +
+                `<tr><td bgcolor="${c.t.bg}" style="border:1px solid ${c.t.border};background-color:${c.t.bg};padding:12px 16px;` +
                 `font-family:Consolas,'Courier New',monospace;font-size:${c.size};color:${c.t.fg};line-height:1.6;">` +
                 `${highlighted}</td></tr></table>\n`;
       } else {
@@ -592,7 +606,7 @@ function markdownToOutlookHTML(md, forClipboard) {
 
     // ── Horizontal rule ──
     if (/^(\-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
-      html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:14px 0;"><tr><td style="border-bottom:1px solid #dddddd;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>\n`;
+      html += `<hr style="border:none;border-top:1px solid #dddddd;margin:14px 0;">\n`;
       i++; continue;
     }
 
@@ -629,14 +643,14 @@ function markdownToOutlookHTML(md, forClipboard) {
         const bodyText = bodyLines.length > 0 ? bodyLines.map(l => inlineFormat(l)).join('<br>') : '';
 
         html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:10px 0;border-collapse:collapse;"><tr>` +
-                `<td style="background-color:${cfg.bg};border-left:4px solid ${cfg.color};padding:12px 16px;border-radius:4px;">` +
+                `<td bgcolor="${cfg.bg}" style="background-color:${cfg.bg};border-left:4px solid ${cfg.color};padding:12px 16px;border-radius:4px;">` +
                 `<span style="${baseStyle}font-weight:bold;color:${cfg.color};">${cfg.icon} ${title}</span>` +
                 (bodyText ? `<br><span style="${baseStyle}color:#333333;line-height:1.6;">${bodyText}</span>` : '') +
                 `</td></tr></table>\n`;
       } else {
         const bqText = bqLines.map(l => inlineFormat(l)).join('<br>');
         html += `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:10px 0;"><tr>` +
-                `<td width="3" style="background-color:${c.headerColor};"></td>` +
+                `<td width="3" bgcolor="${c.headerColor}" style="background-color:${c.headerColor};"></td>` +
                 `<td style="${baseStyle}padding:8px 0 8px 14px;color:#555555;">${bqText}</td>` +
                 `</tr></table>\n`;
       }
@@ -790,19 +804,23 @@ function parseTable(tableLines, c) {
       : tdStyle;
   }
 
+  const thBg = c.preset === 'minimal' ? '' : ` bgcolor="${c.headerColor}"`;
+  const altBg = c.preset === 'striped' ? ' bgcolor="#f2f2f2"' : '';
+
   let html = `<table style="border-collapse:collapse;width:100%;font-family:${c.font};font-size:${c.size};margin:10px 0;">\n<thead><tr>`;
   headers.forEach((h, idx) => {
     const align = alignments[idx] || 'left';
-    html += `<th style="${thStyle}text-align:${align};">${inlineFormat(h)}</th>`;
+    html += `<th${thBg} style="${thStyle}text-align:${align};">${inlineFormat(h)}</th>`;
   });
   html += `</tr></thead>\n<tbody>`;
 
   rows.forEach((row, ri) => {
     html += `<tr>`;
+    const rowBg = ri % 2 === 1 ? altBg : '';
     row.forEach((cell, ci) => {
       const align = alignments[ci] || 'left';
       const style = ri % 2 === 1 ? tdAltStyle : tdStyle;
-      html += `<td style="${style}text-align:${align};">${inlineFormat(cell)}</td>`;
+      html += `<td${rowBg} style="${style}text-align:${align};">${inlineFormat(cell)}</td>`;
     });
     html += `</tr>`;
   });
