@@ -6,17 +6,17 @@ A single-file, zero-dependency static HTML tool that converts Markdown into Outl
 
 ## ✨ Features
 
-- **Full Markdown support** — headers, tables, lists (ordered & unordered), blockquotes, bold, italic, strikethrough, links, inline code, code blocks, and horizontal rules
-- **Callouts / admonitions** — supports `> [!note]`, `> [!warning]`, `> [!caution]`, `> [!tip]`, and more (12 types) with color-coded styling and icons, compatible with GitHub and Obsidian syntax
-- **Syntax highlighting** — powered by [highlight.js](https://highlightjs.org/). Specify the language in your fenced code blocks (` ```python `, ` ```yaml `, etc.) and get real, colorized syntax in your emails
-- **5 code themes** — GitHub Dark, One Dark, Nord, Dracula, and Monokai. Because your YAML deserves to look good
-- **Customizable tables** — four table styles (clean, striped, bordered, minimal) with configurable header colors
-- **Font & size control** — pick your body font (Aptos, Calibri, Arial…) and size. Code blocks always render in Consolas
-- **Outlook-tested** — all HTML uses inline styles and table-based layouts that survive Outlook's Word rendering engine. Code blocks, blockquotes, and horizontal rules are all built with `<table>` elements because that's what Outlook respects
-- **Works in Gmail too** — inline styles mean it pastes beautifully into Gmail and other email clients as well
-- **Two copy modes** — "Copy for Outlook" (rich text for pasting) and "Copy HTML" (raw source)
-- **Static & portable** — one HTML file, no build step, no server. Open it in your browser and go
-- **Bilingual (EN/ES)** — auto-detects your browser language, with a one-click switcher. Defaults to English
+- **Full Markdown support**: headers, tables, lists (ordered & unordered), blockquotes, bold, italic, strikethrough, links, inline code, code blocks, and horizontal rules
+- **Callouts / admonitions**: supports `> [!note]`, `> [!warning]`, `> [!caution]`, `> [!tip]`, and more (12 types) with color-coded styling and icons, compatible with GitHub and Obsidian syntax
+- **Syntax highlighting**: powered by [highlight.js](https://highlightjs.org/). Specify the language in your fenced code blocks (` ```python `, ` ```yaml `, etc.) and get real, colorized syntax in your emails
+- **5 code themes**: GitHub Dark, One Dark, Nord, Dracula, and Monokai. Because your YAML deserves to look good
+- **Customizable tables**: four table styles (clean, striped, bordered, minimal) with configurable header colors
+- **Font & size control**: pick your body font (Calibri by default, or Aptos, Arial…) and size. Code blocks always render in Consolas
+- **Outlook-tested**: all HTML uses inline styles and table-based layouts that survive Outlook's Word rendering engine. Code blocks, blockquotes, and horizontal rules are all built with `<table>` elements because that's what Outlook respects
+- **Works in Gmail too**: inline styles mean it pastes beautifully into Gmail and other email clients as well
+- **Two copy modes**: "Copy for Outlook" (rich text for pasting) and "Copy HTML" (raw source)
+- **Static & portable**: one HTML file, no build step, no server. Open it in your browser and go
+- **Bilingual (EN/ES)**: auto-detects your browser language, with a one-click switcher. Defaults to English
 
 ## 🚀 Usage
 
@@ -40,13 +40,13 @@ Hit the **Example** button in the tool to see a sample report with tables, code 
 
 The tool has a custom Markdown parser that generates HTML with:
 
-- **Inline styles on every element** — no external CSS, no classes. Outlook strips `<style>` blocks, so everything is baked into `style=""` attributes
-- **Table-based layouts** for code blocks, blockquotes, and horizontal rules — Outlook's Word engine ignores `<div>`, `<pre>` backgrounds, and CSS borders, but it respects `<table>` with `bgcolor`
+- **Inline styles on every element**: no external CSS, no classes. Outlook strips `<style>` blocks, so everything is baked into `style=""` attributes
+- **Table-based layouts** for code blocks, blockquotes, and horizontal rules: Outlook's Word engine ignores `<div>`, `<pre>` backgrounds, and CSS borders, but it respects `<table>` with `bgcolor`
 - **highlight.js** for syntax highlighting in the preview (CSS-based) and a parallel path that converts hljs class names into inline `style="color:..."` spans for the clipboard version
 
 ## 📄 License
 
-MIT — do whatever you want with it.
+MIT: do whatever you want with it.
 
 ## 👤 Author
 
